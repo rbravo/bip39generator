@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Discover 12th or 24th BIP39 Word</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <link href="./tailwind.css" rel="stylesheet"> -->
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+  <!-- Stylized header -->
+  <header class="py-8 bg-gradient-to-r from-blue-600 to-blue-400 mb-8 shadow">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center drop-shadow">Bitcoin Seed Generator</h1>
+    <p class="text-center text-blue-100 mt-2">Generate the last word of a 12 or 24-word BIP39 seed</p>
+  </header>
+
+  <main class="max-w-2xl mx-auto">
+    <p class="mb-6 text-gray-800 text-base leading-relaxed">
+      <strong>Bitcoin Seed Generator</strong> is a free and open-source tool that helps you generate or recover the last
+      word of a 12 or 24-word BIP39 seed phrase. Enter your existing seed words and instantly discover all valid options
+      for the final word, according to the official BIP39 standard. This tool works 100% offline in your browser and
+      supports educational, development, and wallet recovery scenarios. Always use with caution.
+    </p>
+    <!-- Seed Generator UI (único card agora) -->
+    <div id="seed-generator" class="mb-6 border border-gray-300 rounded-lg p-6 bg-white shadow">
+      <h2 class="text-xl font-bold mb-0 text-blue-700">Seed Generator</h2>
+      <p class="text-gray-700 mb-4">Input or generate the first 11 or 23 words of your seed.</p>
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <div class="flex flex-col">
+          <button id="letraAleatoriaBtn" type="button"
+            class="text-blue-700 text-xs underline mb-1 bg-transparent border-0 p-0 hover:text-blue-900"
+            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 58px;text-decoration: underline;">random</button>
+          <label class="flex items-center gap-2">
+            <span class="font-medium">Letter:</span>
+            <select id="letraSelect"
+              class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"></select>
+          </label>
+        </div>
+        <div class="flex flex-col">
+          <button id="palavraAleatoriaBtn" type="button"
+            class="text-blue-700 text-xs underline mb-1 bg-transparent border-0 p-0 hover:text-blue-900"
+            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 58px;text-decoration: underline;">random</button>
+          <label class="flex items-center gap-2">
+            <span class="font-medium">Word:</span>
+            <select id="palavraSelect"
+              class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              style="min-width: 125px;"></select>
+          </label>
+        </div>
+        <button id="addPalavraBtn"
+          class="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700 transition">Add
+        </button>
+      </div>
+      <div class="mb-2 flex items-center gap-2">
+        <div class="flex flex-col w-full">
+          <textarea id="seedPreview" rows="3" class="w-full border rounded px-3 py-2 resize-y"
+            placeholder="Type or select words to build your seed (editable)"></textarea>
+          <div class="bg-gray-200 text-xs text-gray-600 rounded-b px-3 py-1 border-t border-gray-300 min-h-[28px] flex"
+            style="justify-content: space-between;">
+            <small>input 11 or 23 words</small>
+            <div class="flex items-center gap-2">
+              <small id="seedPreviewCount" class="text-blue-700"></small>
+              <button id="limparSeedPreview" type="button" title="Clear"
+                class="ml-2 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xl px-3 py-1"
+                style="line-height: 1;width: 14px;height: 20px; display: none;">
+                <small class="w-full h-full flex items-center justify-center" style="font-size: 10px;">✕</small>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- <button id="limparSeedPreview" type="button" title="Clear"
+          class="ml-2 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xl px-3 py-1 rounded shadow-sm border border-gray-300 transition"
+          style="line-height: 1;width: 28px;height: 28px; display: none;">
+          <small class="w-full h-full flex items-center justify-center" style="font-size: 12px;">✕</small>
+        </button> -->
+      </div>
+      <!-- Final word options e output do seed completo -->
+      <div class="flex flex-col gap-2 mt-4" id="finalWordContainer" style="display:none">
+        <label for="finalWordSelect" class="font-medium text-blue-700">Possible options for the last word:</label>
+        <div class="flex items-center gap-2">
+          <select id="finalWordSelect"
+            class="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"></select>
+          <button id="finalWordRandomBtn" type="button"
+            class="text-blue-700 text-xs underline bg-transparent border-0 p-0 hover:text-blue-900"
+            style="font-size: 13px; cursor:pointer; text-decoration: underline;">random</button>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 mb-4 mt-4" id="outputContainer" style="display:none">
+        <label for="output" class="font-medium text-gray-700">Complete seed:</label>
+        <div class="flex flex-col w-full">
+          <textarea id="output" rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 resize-y" readonly
+            placeholder="Complete mnemonic will appear here"></textarea>
+          <div class="bg-gray-200 text-xs text-gray-600 rounded-b px-3 py-1 border-t border-gray-300 min-h-[24px]">
+            <small id="outputCount"></small>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button id="copyButton" onclick="copiar()" style="display:none;"
+          class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">📋 Copy Complete Seed</button>
+      </div>
+    </div>
+    <div class="flex items-start gap-3 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6 shadow-sm">
+      <span class="text-yellow-500 text-2xl mt-0.5">⚠️</span>
+      <div>
+        <span class="font-semibold text-yellow-800">Attention:</span>
+        <span class="text-yellow-900">
+          This tool is intended for educational and developer use only.<br>
+          Manually creating a seed phrase (especially by picking words yourself) can make your wallet easy to guess or
+          attack.<br>
+          For real funds, always use a trusted wallet or hardware device to generate your seed with proper randomness.
+        </span>
+      </div>
+    </div>
+  </main>
+
+
+  <script>
+    let wordlist = [];
+    let ultimaSeed = '';
+    let ultimasOpcoes = [];
+
+    async function carregarWordlist() {
+      const res = await fetch("https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt");
+      const txt = await res.text();
+      wordlist = txt.trim().split('\n');
+    }
+
+    function toBin(n, length) {
+      return n.toString(2).padStart(length, '0');
+    }
+
+    async function calcular() {
+      document.getElementById("copyButton").style.display = "none";
+      const outputContainer = document.getElementById("outputContainer");
+      outputContainer.style.display = "none";
+      const input = document.getElementById("seedPreview").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const output = document.getElementById("output");
+      const finalWordSelect = document.getElementById("finalWordSelect");
+      const finalWordContainer = document.getElementById("finalWordContainer");
+
+      finalWordContainer.style.display = "none";
+      finalWordSelect.innerHTML = "";
+      output.value = "";
+      ultimasOpcoes = [];
+
+      if (input.length !== 11 && input.length !== 23) {
+        output.value = "";
+        atualizarContadores();
+        return;
+      }
+
+      if (!input.every(w => wordlist.includes(w))) {
+        output.value = "Error: one or more words are not in the BIP39 wordlist.";
+        atualizarContadores();
+        return;
+      }
+
+      const bits = input.map(w => toBin(wordlist.indexOf(w), 11)).join('');
+      const bitsToAdd = input.length === 11 ? 7 : 3;
+      const checksumBits = input.length === 11 ? 1 : 2;
+
+      let opcoes = [];
+      for (let i = 0; i < Math.pow(2, bitsToAdd); i++) {
+        const entropyBits = bits + toBin(i, bitsToAdd);
+        const hex = BigInt('0b' + entropyBits).toString(16).padStart(entropyBits.length / 4, '0');
+
+        const bytes = new Uint8Array(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
+        const hashBuf = await crypto.subtle.digest('SHA-256', bytes);
+        const hash = Array.from(new Uint8Array(hashBuf)).map(b => toBin(b, 8)).join('');
+        const checksum = hash.slice(0, checksumBits * 4);
+
+        const lastBits = toBin(i, bitsToAdd) + checksum;
+        const index = parseInt(lastBits, 2);
+
+        if (index >= 0 && index < wordlist.length) {
+          const finalWord = wordlist[index];
+          opcoes.push(finalWord);
+        }
+      }
+
+      // Remove duplicates (rare case)
+      opcoes = [...new Set(opcoes)];
+
+      if (opcoes.length === 0) {
+        output.value = "Could not find a valid last word.";
+        atualizarContadores();
+        return;
+      }
+
+      ultimasOpcoes = opcoes;
+      // Fill the select with options
+      finalWordSelect.innerHTML = opcoes.map(w => `<option value="${w}">${w}</option>`).join('');
+      finalWordContainer.style.display = "flex";
+      outputContainer.style.display = "flex";
+
+      // Show the first complete seed
+      ultimaSeed = [...input, opcoes[0]].join(' ');
+      output.value = ultimaSeed;
+      document.getElementById("copyButton").style.display = "inline-block";
+      atualizarContadores();
+    }
+
+    // Update the complete seed when changing the select option
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('finalWordSelect').addEventListener('change', function () {
+        const input = document.getElementById("seedPreview").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        const output = document.getElementById("output");
+        const finalWord = this.value;
+        ultimaSeed = [...input, finalWord].join(' ');
+        output.value = ultimaSeed;
+        atualizarContadores();
+      });
+
+      // Random button for final word select
+      document.getElementById('finalWordRandomBtn').onclick = function () {
+        const select = document.getElementById('finalWordSelect');
+        const options = select.options;
+        if (options.length === 0) return;
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        const idx = arr[0] % options.length;
+        select.selectedIndex = idx;
+        // Trigger change event to update output
+        select.dispatchEvent(new Event('change'));
+      };
+    });
+
+    function copiar() {
+      navigator.clipboard.writeText(ultimaSeed).then(() => {
+        alert("Seed copied to clipboard.");
+      });
+    }
+
+    // Seed Generator logic
+    const letraSelect = document.getElementById('letraSelect');
+    const palavraSelect = document.getElementById('palavraSelect');
+    const addPalavraBtn = document.getElementById('addPalavraBtn');
+    const seedPreview = document.getElementById('seedPreview');
+    const letraAleatoriaBtn = document.getElementById('letraAleatoriaBtn');
+    const palavraAleatoriaBtn = document.getElementById('palavraAleatoriaBtn');
+
+    let seedPalavras = [];
+
+    // Fill initial letters
+    function preencherLetras() {
+      const letras = [...new Set(wordlist.map(w => w[0].toUpperCase()))];
+      letraSelect.innerHTML = letras.map(l => `<option value="${l}">${l}</option>`).join('');
+    }
+
+    // Fill words for the selected letter
+    function preencherPalavras() {
+      const letra = letraSelect.value.toLowerCase();
+      const palavras = wordlist.filter(w => w.startsWith(letra));
+      palavraSelect.innerHTML = palavras.map(w => `<option value="${w}">${w}</option>`).join('');
+    }
+
+    // Random button for letter
+    letraAleatoriaBtn.onclick = function () {
+      const options = letraSelect.options;
+      if (options.length === 0) return;
+      const arr = new Uint32Array(1);
+      window.crypto.getRandomValues(arr);
+      const idx = arr[0] % options.length;
+      letraSelect.selectedIndex = idx;
+      preencherPalavras();
+    };
+
+    // Random button for word
+    palavraAleatoriaBtn.onclick = function () {
+      const options = palavraSelect.options;
+      if (options.length === 0) return;
+      const arr = new Uint32Array(1);
+      window.crypto.getRandomValues(arr);
+      const idx = arr[0] % options.length;
+      palavraSelect.selectedIndex = idx;
+    };
+
+    // Add word to seed (now allows duplicates)
+    addPalavraBtn.onclick = function () {
+      if (seedPalavras.length >= 23) return;
+      const palavra = palavraSelect.value;
+      if (palavra) {
+        seedPalavras.push(palavra);
+        atualizarPreview();
+        atualizarContadores();
+        calcular();
+      }
+    };
+
+    // Show/hide clear button based on textarea content
+    function atualizarLimparBtn() {
+      const btn = document.getElementById('limparSeedPreview');
+      const hasContent = seedPreview.value.trim().length > 0;
+      btn.style.display = hasContent ? 'flex' : 'none';
+    }
+
+    // Update preview input
+    function atualizarPreview() {
+      seedPreview.value = seedPalavras.join(' ');
+      atualizarContadores();
+    }
+
+    // Update seedPalavras when input is manually edited
+    seedPreview.addEventListener('input', function () {
+      seedPalavras = seedPreview.value.trim().split(/\s+/).filter(Boolean);
+      atualizarContadores();
+      calcular();
+    });
+
+    // Clear seedPreview button
+    document.getElementById('limparSeedPreview').onclick = function () {
+      if (!confirm("Are you sure you want to clear all seed words?")) return;
+      seedPalavras = [];
+      seedPreview.value = '';
+      atualizarContadores();
+      calcular();
+    };
+
+    // Update word counters in textareas
+    function atualizarContadores() {
+      // Seed Preview
+      const seedPreviewWords = seedPreview.value.trim().split(/\s+/).filter(Boolean);
+      document.getElementById('seedPreviewCount').textContent = seedPreviewWords.length > 0 ? `${seedPreviewWords.length} word${seedPreviewWords.length > 1 ? 's' : ''}` : '';
+
+      // Output (complete mnemonic)
+      const outputWords = document.getElementById('output').value.trim().split(/\s+/).filter(Boolean);
+      document.getElementById('outputCount').textContent = outputWords.length > 0 ? `${outputWords.length} word${outputWords.length > 1 ? 's' : ''}` : '';
+
+      atualizarLimparBtn();
+    }
+
+    // Update words when letter changes
+    letraSelect.onchange = preencherPalavras;
+
+    // Initialization after wordlist is loaded
+    async function inicializarSeedGenerator() {
+      await carregarWordlist();
+      preencherLetras();
+      preencherPalavras();
+      atualizarContadores();
+    }
+    inicializarSeedGenerator();
+  </script>
+</body>
+
+</html>

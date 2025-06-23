@@ -1,0 +1,18 @@
+{
+  "name": "bip39generator",
+  "version": "1.0.0",
+  "description": "A BIP39 seed generator application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx serve public",
+    "dist": "node generateDist.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "serve": "^13.0.2"
+  }
+}
