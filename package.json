@@ -2,17 +2,19 @@
   "name": "bip39generator",
   "version": "1.0.0",
   "description": "A BIP39 seed generator application",
-  "main": "index.js",
   "scripts": {
     "dev": "npx serve public",
-    "dist": "node generateDist.js"
+    "dist": "node generateDist.js",
+    "predeploy": "npm run dist",
+    "deploy": "gh-pages -d dist"
   },
-  "author": "",
+  "author": "Rafael Bravo (@rbravo)",
   "license": "ISC",
   "dependencies": {
     "fs": "^0.0.1-security"
   },
   "devDependencies": {
+    "gh-pages": "^6.3.0",
     "serve": "^13.0.2"
   }
 }
