@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Bitcoin Seed Generator – Discover 12th or 24th BIP39 Word</title>
   <meta name="description"
     content="Free and open-source tool to generate or recover the last word of a 12 or 24-word BIP39 seed phrase. Works 100% offline.">
@@ -60,7 +60,7 @@
         <div class="flex flex-col">
           <button id="letraAleatoriaBtn" type="button"
             class="text-blue-700 text-xs underline mb-1 bg-transparent border-0 p-0 hover:text-blue-900"
-            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 58px;text-decoration: underline;">random</button>
+            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 52px;text-decoration: underline; touch-action: manipulation;">random</button>
           <label class="flex items-center gap-2">
             <span class="font-medium text-sm">Letter:</span>
             <select id="letraSelect"
@@ -70,7 +70,7 @@
         <div class="flex flex-col">
           <button id="palavraAleatoriaBtn" type="button"
             class="text-blue-700 text-xs underline mb-1 bg-transparent border-0 p-0 hover:text-blue-900"
-            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 58px;text-decoration: underline;">random</button>
+            style="width:fit-content;align-self:flex-start;font-size: 13px;cursor:pointer;margin-left: 52px;text-decoration: underline; touch-action: manipulation;">random</button>
           <label class="flex items-center gap-2">
             <span class="font-medium text-sm">Word:</span>
             <select id="palavraSelect"
@@ -79,7 +79,7 @@
           </label>
         </div>
         <button id="addPalavraBtn" class="bg-blue-600 text-white px-2 py-0 rounded mt-4 hover:bg-blue-700 transition"
-          style="font-size: 20px;">+
+          style="font-size: 20px; touch-action: manipulation;">+
         </button>
       </div>
       <div class="mb-2 flex items-center gap-2">
@@ -113,7 +113,7 @@
             class="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"></select>
           <button id="finalWordRandomBtn" type="button"
             class="text-blue-700 text-xs underline bg-transparent border-0 p-0 hover:text-blue-900"
-            style="font-size: 13px; cursor:pointer; text-decoration: underline;">random</button>
+            style="font-size: 13px; cursor:pointer; text-decoration: underline;  touch-action: manipulation;">random</button>
         </div>
       </div>
       <div class="flex flex-col gap-2 mb-4 mt-4" id="outputContainer" style="display:none">
@@ -294,13 +294,19 @@
     // Fill initial letters
     function preencherLetras() {
       const letras = [...new Set(wordlist.map(w => w[0].toUpperCase()))];
-      letraSelect.innerHTML = letras.map(l => `<option value="${l}">${l}</option>`).join('');
+      letraSelect.innerHTML = `<option value="*">*</option>` +
+        letras.map(l => `<option value="${l}">${l}</option>`).join('');
     }
 
     // Fill words for the selected letter
     function preencherPalavras() {
-      const letra = letraSelect.value.toLowerCase();
-      const palavras = wordlist.filter(w => w.startsWith(letra));
+      const letra = letraSelect.value;
+      let palavras;
+      if (letra === '*') {
+        palavras = wordlist; // Mostra todas as palavras
+      } else {
+        palavras = wordlist.filter(w => w.startsWith(letra.toLowerCase()));
+      }
       palavraSelect.innerHTML = palavras.map(w => `<option value="${w}">${w}</option>`).join('');
     }
 
