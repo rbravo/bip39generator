@@ -7,13 +7,16 @@ const wordsPath = path.join(__dirname, 'public', 'bip-0039', 'english.txt');
 const distDir = path.join(__dirname, 'dist');
 const distHtmlPath = path.join(distDir, 'index.html');
 
-const html = fs.readFileSync(htmlPath, 'utf8');
+let html = fs.readFileSync(htmlPath, 'utf8');
 const css = fs.readFileSync(cssPath, 'utf8');
 const words = fs.readFileSync(wordsPath, 'utf8');
 
+// Remove Tailwind CDN script
+html = html.replace(/<script\s+src="https:\/\/cdn\.tailwindcss\.com"><\/script>\s*/i, '');
+
 // Insere o CSS no <head>
 const htmlWithCss = html.replace(
-  /<link\b[^>]*rel=["']stylesheet["'][^>]*>/i,
+  /<!-- TAILWIND_CSS_PLACEHOLDER -->/i,
   `<style>\n${css}\n</style>`
 );
 
