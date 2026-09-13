@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#075985">
+  <title>BIP39 Seed Generator</title>
+  <style>
+    :root { color-scheme: light; font-family: Verdana, sans-serif; color: #102a43; background: #e8f1f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 320px; background: #e8f1f5; }
+    main { width: min(480px, 100vw); min-height: 320px; margin: 0 auto; padding: 0 8px; }
+    header { display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 5px 8px; color: #fff; background: #075985; }
+    h1 { flex: 1; margin: 0; font-size: 17px; letter-spacing: 0; }
+    .status { font-size: 10px; color: #d9f3ff; }
+    .toolbar { display: grid; grid-template-columns: 1fr 1.55fr auto; gap: 6px; margin: 7px 0; }
+    .row { display: flex; gap: 6px; align-items: center; }
+    select, textarea, button { font: inherit; border-radius: 3px; }
+    select, textarea { width: 100%; border: 1px solid #8da7b8; background: #fff; color: #102a43; }
+    select { height: 32px; padding: 4px; font-size: 13px; }
+    textarea { display: block; height: 59px; padding: 6px; resize: none; font-size: 13px; line-height: 1.3; }
+    button { min-width: 44px; min-height: 32px; padding: 5px 9px; border: 1px solid #075985; color: #fff; background: #075985; font-weight: bold; font-size: 13px; touch-action: manipulation; }
+    button:active { background: #0c4a6e; }
+    button.secondary { border-color: #648195; background: #f8fbfc; color: #16435c; }
+    .field-title { display: flex; align-items: center; justify-content: space-between; margin: 5px 0 3px; font-size: 12px; font-weight: bold; }
+    .counter { font-size: 11px; font-weight: normal; color: #486581; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 7px; }
+    #lastSection { display: none; }
+    #lastWord { flex: 1; }
+    #output { height: 45px; background: #f7fbfd; }
+    .error { color: #b42318; }
+    .draw-button { min-width: 0; min-height: 25px; padding: 3px 6px; border-color: #d9f3ff; background: #e0f2fe; color: #075985; font-size: 11px; }
+    .draw-dialog { position: fixed; inset: 0; z-index: 2; display: none; align-items: center; justify-content: center; padding: 6px; background: rgba(7, 89, 133, 0.45); }
+    .draw-dialog.open { display: flex; }
+    .draw-panel { position: relative; width: min(100%, 468px); padding: 8px; border: 1px solid #486581; background: #e8f1f5; box-shadow: 0 4px 14px rgba(16, 42, 67, 0.35); }
+    .draw-panel h2 { margin: 0 0 5px; font-size: 15px; }
+    .draw-panel p { margin: 0 0 6px; font-size: 11px; line-height: 1.3; }
+    .close-draw { position: absolute; top: 5px; right: 5px; min-width: 25px; min-height: 25px; padding: 0; border-color: #648195; background: #f8fbfc; color: #16435c; font-size: 18px; line-height: 1; }
+    #drawCanvas { display: block; width: 100%; height: 176px; border: 1px solid #486581; background: #fff; touch-action: none; image-rendering: pixelated; }
+    .draw-actions { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 6px; margin-top: 7px; }
+    #qrCode { display: flex; align-items: center; justify-content: center; min-height: 208px; margin: 5px 0; padding: 6px; background: #fff; border: 1px solid #486581; }
+    #qrCode img { display: block; width: 192px; height: 192px; image-rendering: pixelated; }
+    #qrActions { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 370px) { h1 { font-size: 15px; } .toolbar { grid-template-columns: 1fr 1.25fr auto; gap: 4px; } main { padding: 5px; } }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <h1>BIP39 Seed Generator</h1>
+      <button id="drawSeed" class="draw-button" type="button">Draw Seed</button>
+      <span id="status" class="status">Loading...</span>
+    </header>
+
+    <div class="toolbar">
+      <select id="letter" aria-label="First letter"></select>
+      <select id="word" aria-label="Word"></select>
+      <button id="add" type="button" title="Add word">+</button>
+    </div>
+
+    <div class="field-title"><label for="seed">First 11 or 23 words</label><span id="seedCount" class="counter"></span></div>
+    <textarea id="seed" spellcheck="false" autocapitalize="none" placeholder="Enter 11 or 23 BIP39 words"></textarea>
+
+    <div id="lastSection">
+      <div class="field-title"><label for="lastWord">Valid last word</label><span id="optionCount" class="counter"></span></div>
+      <div class="row">
+        <select id="lastWord" aria-label="Valid last word"></select>
+        <button id="randomLast" class="secondary" type="button" title="Choose random valid last word">Random</button>
+      </div>
+      <div class="field-title"><label for="output">Complete seed</label><span id="outputCount" class="counter"></span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+
+    <div class="actions">
+      <button id="random11" class="secondary" type="button">Random 11</button>
+      <button id="random23" class="secondary" type="button">Random 23</button>
+      <button id="clear" class="secondary" type="button">Clear</button>
+      <button id="copy" type="button" style="display: none;grid-column: 1 / 3;">Copy complete seed</button>
+      <button id="viewQr" type="button" style="display: none;">View QR Code</button>
+    </div>
+  </main>
+
+  <div id="drawDialog" class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="drawTitle">
+    <section class="draw-panel">
+      <h2 id="drawTitle">Draw Seed</h2>
+      <button id="closeDrawing" class="close-draw" type="button" aria-label="Close drawing" title="Close">x</button>
+      <p>Draw freely. Your pixels and touch timing are mixed with the system cryptographic random source.</p>
+      <canvas id="drawCanvas" width="448" height="176"></canvas>
+      <div class="draw-actions">
+        <button id="clearDrawing" class="secondary" type="button">Clear</button>
+        <button id="cancelDrawing" class="secondary" type="button">Cancel</button>
+        <button id="useDrawing" type="button">Use Drawing</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="qrDialog" class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <section class="draw-panel">
+      <h2 id="qrTitle">Seed QR Code</h2>
+      <button id="closeQr" class="close-draw" type="button" aria-label="Close QR Code" title="Close">x</button>
+      <p>Scan this code to import the complete seed into a compatible wallet.</p>
+      <div id="qrCode" aria-label="QR Code for complete seed"></div>
+      <div id="qrActions" class="draw-actions">
+        <button id="closeQrAction" class="secondary" type="button">Close</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="qrcode.js"></script>
+  <script src="qrcode_UTF8.js"></script>
+  <script>window.qrcode = qrcode;</script>
+  <script>
+    const letterSelect = document.getElementById('letter');
+    const wordSelect = document.getElementById('word');
+    const seedInput = document.getElementById('seed');
+    const lastWordSelect = document.getElementById('lastWord');
+    const output = document.getElementById('output');
+    const lastSection = document.getElementById('lastSection');
+    const copyButton = document.getElementById('copy');
+    const viewQrButton = document.getElementById('viewQr');
+    const drawDialog = document.getElementById('drawDialog');
+    const qrDialog = document.getElementById('qrDialog');
+    const qrCode = document.getElementById('qrCode');
+    const drawCanvas = document.getElementById('drawCanvas');
+    const drawContext = drawCanvas.getContext('2d', { willReadFrequently: true });
+    let wordlist = [];
+    let calculationId = 0;
+    let drawEntropy = null;
+    let drawing = false;
+    let lastPoint = null;
+    let drawingEvents = [];
+    let savedDrawing = null;
+    let savedDrawingEvents = [];
+
+    async function loadWordlist() {
+      const embeddedWords = document.getElementById('english-words');
+      const text = embeddedWords ? embeddedWords.textContent : await (await fetch('bip-0039/english.txt')).text();
+      wordlist = text.trim().split(/\r?\n/);
+      const letters = [...new Set(wordlist.map(word => word[0].toUpperCase()))];
+      letterSelect.innerHTML = '<option value="*">All</option>' + letters.map(letter => `<option>${letter}</option>`).join('');
+      fillWords();
+      document.getElementById('status').textContent = 'Ready';
+    }
+
+    function fillWords() {
+      const letter = letterSelect.value.toLowerCase();
+      const words = letter === '*' ? wordlist : wordlist.filter(word => word.startsWith(letter));
+      wordSelect.innerHTML = words.map(word => `<option>${word}</option>`).join('');
+    }
+
+    function wordsFromInput() {
+      return seedInput.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    }
+
+    function setSeed(words) {
+      seedInput.value = words.join(' ');
+      calculate();
+    }
+
+    function setCounts(words, finalWords) {
+      document.getElementById('seedCount').textContent = words.length ? `${words.length} words` : '';
+      document.getElementById('outputCount').textContent = output.value ? `${words.length + 1} words` : '';
+      document.getElementById('optionCount').textContent = finalWords.length ? `${finalWords.length} options` : '';
+    }
+
+    function toBinary(value, length) { return value.toString(2).padStart(length, '0'); }
+
+    async function calculate() {
+      const runId = ++calculationId;
+      const words = wordsFromInput();
+      output.value = '';
+      copyButton.style.display = 'none';
+      viewQrButton.style.display = 'none';
+      lastSection.style.display = 'none';
+      setCounts(words, []);
+      if (words.length !== 11 && words.length !== 23) return;
+      if (!words.every(word => wordlist.includes(word))) {
+        output.value = 'Error: word not in BIP39 list.';
+        output.classList.add('error');
+        lastSection.style.display = 'block';
+        setCounts(words, []);
+        return;
+      }
+      output.classList.remove('error');
+      const bits = words.map(word => toBinary(wordlist.indexOf(word), 11)).join('');
+      const entropyTailLength = words.length === 11 ? 7 : 3;
+      const checksumLength = words.length === 11 ? 4 : 8;
+      const options = [];
+      for (let value = 0; value < 2 ** entropyTailLength; value++) {
+        const entropyBits = bits + toBinary(value, entropyTailLength);
+        const hex = BigInt(`0b${entropyBits}`).toString(16).padStart(entropyBits.length / 4, '0');
+        const bytes = new Uint8Array(hex.match(/.{2}/g).map(byte => parseInt(byte, 16)));
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        if (runId !== calculationId) return;
+        const hashBits = Array.from(new Uint8Array(digest), byte => toBinary(byte, 8)).join('');
+        options.push(wordlist[parseInt(toBinary(value, entropyTailLength) + hashBits.slice(0, checksumLength), 2)]);
+      }
+      lastWordSelect.innerHTML = options.map(word => `<option>${word}</option>`).join('');
+      lastSection.style.display = 'block';
+      updateOutput();
+      setCounts(words, options);
+      copyButton.style.display = 'block';
+      viewQrButton.style.display = 'block';
+    }
+
+    function updateOutput() {
+      const words = wordsFromInput();
+      output.value = lastWordSelect.value ? [...words, lastWordSelect.value].join(' ') : '';
+      setCounts(words, Array.from(lastWordSelect.options));
+    }
+
+    function combineBytes(...arrays) {
+      const length = arrays.reduce((total, array) => total + array.length, 0);
+      const combined = new Uint8Array(length);
+      let offset = 0;
+      arrays.forEach(array => { combined.set(array, offset); offset += array.length; });
+      return combined;
+    }
+
+    async function randomBytes(length, purpose) {
+      const systemRandom = new Uint8Array(length);
+      crypto.getRandomValues(systemRandom);
+      if (!drawEntropy) return systemRandom;
+      const result = new Uint8Array(length);
+      let offset = 0;
+      let block = 0;
+      while (offset < length) {
+        const label = new TextEncoder().encode(`${purpose}:${block++}`);
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', combineBytes(drawEntropy, systemRandom, label)));
+        result.set(digest.slice(0, Math.min(digest.length, length - offset)), offset);
+        offset += Math.min(digest.length, length - offset);
+      }
+      return result;
+    }
+
+    async function randomIndex(length, purpose) {
+      const bytes = await randomBytes(4, purpose);
+      return new DataView(bytes.buffer).getUint32(0) % length;
+    }
+
+    async function generateRandomSeed(length) {
+      if (!wordlist.length) return;
+      const bytes = await randomBytes(length * 2, `words-${length}`);
+      setSeed(Array.from({ length }, (_, index) => wordlist[((bytes[index * 2] << 8) | bytes[index * 2 + 1]) & 2047]));
+    }
+
+    function clearDrawing() {
+      drawContext.fillStyle = '#ffffff';
+      drawContext.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+      drawingEvents = [];
+      lastPoint = null;
+    }
+
+    function restoreSavedDrawing() {
+      if (!savedDrawing) {
+        clearDrawing();
+        return;
+      }
+      drawContext.putImageData(savedDrawing, 0, 0);
+      drawingEvents = savedDrawingEvents.map(point => ({ ...point }));
+      lastPoint = null;
+    }
+
+    function recordPoint(event) {
+      const bounds = drawCanvas.getBoundingClientRect();
+      const point = {
+        x: Math.round((event.clientX - bounds.left) * drawCanvas.width / bounds.width),
+        y: Math.round((event.clientY - bounds.top) * drawCanvas.height / bounds.height),
+        pressure: Math.round((event.pressure || 0.5) * 1024),
+        time: Math.round(performance.now() * 1000)
+      };
+      drawingEvents.push(point);
+      return point;
+    }
+
+    function drawPoint(point) {
+      drawContext.strokeStyle = '#102a43';
+      drawContext.lineCap = 'round';
+      drawContext.lineJoin = 'round';
+      drawContext.lineWidth = 3 + point.pressure / 1024 * 5;
+      drawContext.beginPath();
+      drawContext.moveTo(lastPoint.x, lastPoint.y);
+      drawContext.lineTo(point.x, point.y);
+      drawContext.stroke();
+      lastPoint = point;
+    }
+
+    async function saveDrawing() {
+      if (drawingEvents.length < 2) return;
+      const pixels = drawContext.getImageData(0, 0, drawCanvas.width, drawCanvas.height).data;
+      const eventData = new TextEncoder().encode(JSON.stringify(drawingEvents));
+      drawEntropy = new Uint8Array(await crypto.subtle.digest('SHA-256', combineBytes(pixels, eventData)));
+      savedDrawing = drawContext.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+      savedDrawingEvents = drawingEvents.map(point => ({ ...point }));
+      drawDialog.classList.remove('open');
+      document.getElementById('status').textContent = 'Draw seed active';
+    }
+
+    letterSelect.addEventListener('change', fillWords);
+    document.getElementById('add').addEventListener('click', () => {
+      const words = wordsFromInput();
+      if (words.length < 23 && wordSelect.value) setSeed([...words, wordSelect.value]);
+    });
+    seedInput.addEventListener('input', calculate);
+    lastWordSelect.addEventListener('change', updateOutput);
+    document.getElementById('randomLast').addEventListener('click', async () => {
+      if (lastWordSelect.options.length) { lastWordSelect.selectedIndex = await randomIndex(lastWordSelect.options.length, 'last-word'); updateOutput(); }
+    });
+    document.getElementById('random11').addEventListener('click', () => generateRandomSeed(11));
+    document.getElementById('random23').addEventListener('click', () => generateRandomSeed(23));
+    document.getElementById('clear').addEventListener('click', () => setSeed([]));
+    copyButton.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(output.value);
+      copyButton.textContent = 'Copied';
+      setTimeout(() => { copyButton.textContent = 'Copy complete seed'; }, 1000);
+    });
+    function closeQrCode() {
+      qrDialog.classList.remove('open');
+      qrCode.replaceChildren();
+    }
+    function showQrCode() {
+      if (!output.value || output.classList.contains('error')) return;
+      const qr = qrcode(0, 'M');
+      qr.addData(output.value);
+      qr.make();
+      const image = document.createElement('img');
+      image.src = qr.createDataURL(4, 0);
+      image.alt = 'QR Code containing the complete seed';
+      qrCode.replaceChildren(image);
+      qrDialog.classList.add('open');
+    }
+    viewQrButton.addEventListener('click', showQrCode);
+    document.getElementById('closeQr').addEventListener('click', closeQrCode);
+    document.getElementById('closeQrAction').addEventListener('click', closeQrCode);
+    document.getElementById('drawSeed').addEventListener('click', () => {
+      restoreSavedDrawing();
+      drawDialog.classList.add('open');
+    });
+    document.getElementById('clearDrawing').addEventListener('click', clearDrawing);
+    function closeDrawing() {
+      restoreSavedDrawing();
+      drawDialog.classList.remove('open');
+    }
+    document.getElementById('cancelDrawing').addEventListener('click', closeDrawing);
+    document.getElementById('closeDrawing').addEventListener('click', closeDrawing);
+    document.getElementById('useDrawing').addEventListener('click', saveDrawing);
+    drawCanvas.addEventListener('pointerdown', event => {
+      drawing = true;
+      drawCanvas.setPointerCapture(event.pointerId);
+      lastPoint = recordPoint(event);
+      drawPoint({ ...lastPoint, x: lastPoint.x + 0.1, y: lastPoint.y + 0.1 });
+    });
+    drawCanvas.addEventListener('pointermove', event => {
+      if (drawing) drawPoint(recordPoint(event));
+    });
+    drawCanvas.addEventListener('pointerup', event => {
+      if (drawing) recordPoint(event);
+      drawing = false;
+      lastPoint = null;
+    });
+    drawCanvas.addEventListener('pointercancel', () => { drawing = false; lastPoint = null; });
+    document.addEventListener('DOMContentLoaded', () => {
+      loadWordlist().catch(() => { document.getElementById('status').textContent = 'List unavailable'; });
+    });
+  </script>
+</body>
+
+</html>

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A BIP39 seed generator application",
   "scripts": {
-    "dev": "npx serve public",
+    "dev": "npx serve public -l 3003",
     "dist": "node generateDist.js",
     "predeploy": "npm run dist",
     "deploy": "gh-pages -d dist"
@@ -11,7 +11,8 @@
   "author": "Rafael Bravo (@rbravo)",
   "license": "ISC",
   "dependencies": {
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "gh-pages": "^6.3.0",
